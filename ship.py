@@ -2,9 +2,9 @@ import pygame
 
 class Ship():
     '''Ship class'''
-    def __init__(self, ai_settings, screen) -> None:
+    def __init__(self, settings, screen) -> None:
         self.screen = screen
-        self.ai_settings = ai_settings
+        self.settings = settings
 
         #loads ship image and gets ship's screen
         self.image = pygame.image.load('images/ship.bmp')
@@ -24,9 +24,9 @@ class Ship():
     def update(self):
         #after changing position of ship: postion of rect-object gets updated as an integer
         if self.moving_left and self.rect.left > 0:
-            self.center -= self.ai_settings.ship_speed_factor
+            self.center -= self.settings.ship_speed_factor
         if self.moving_right and self.rect.right < self.screen_rect.right:
-            self.center += self.ai_settings.ship_speed_factor
+            self.center += self.settings.ship_speed_factor
         self.rect.centerx = self.center
     
     def blitme(self):

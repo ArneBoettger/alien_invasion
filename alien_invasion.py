@@ -1,30 +1,40 @@
 import pygame
 from pygame.sprite import Group
 
+import game_functions as gf
 from settings import Settings
 from ship import Ship
-import game_functions as gf
+from bullet import Bullet
+from alien import Alien
 
-def run_game():
-    #initializes pygame and loads settings
-    pygame.init()
-    ai_settings = Settings()
-    screen = pygame.display.set_mode((ai_settings.screen_width, ai_settings.screen_height))
-    pygame.display.set_caption("Alien Invasion")
+class AlienInvasion:
+    def __init__(self):
+        #initializes pygame and loads settings
+        pygame.init()
+        self.settings = Settings()
+        self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
+        pygame.display.set_caption("Alien Invasion")
 
-    #loads ship
-    ship = Ship(ai_settings, screen)
-    #creates group to save bullets
-    bullets = Group()
+        #loads ship
+        self.ship = Ship(self.settings, self.screen)
+        #creates group to save bullets
+        self.bullets = Group()
+        #create alien fleet
+        self.aliens = Group()
+        gf._create_fleet(self)
 
-    while True:
-        #checks for events and updates ship, bullets and rest of the screen
-        gf.check_events(ai_settings, screen, ship, bullets)
-        ship.update()
-        gf.update_bullets(bullets)
-        gf.update_screen(ai_settings, screen, ship, bullets)
+    def run_game(self):
+        while True:
+            #checks for events and updates ship, bullets and rest of the screen
+            gf._check_events(self)
+            self.ship.update()
+            gf._update_bullets(self.bullets)
+            gf._update_aliens(self)
+            gf._update_screen(self)
 
-        #updates of the entire display
-        pygame.display.flip()
+            #updates of the entire display
+            pygame.display.flip()
 
-run_game()
+if __name__ == '__main__':
+    ai = AlienInvasion()
+    ai.run_game()
