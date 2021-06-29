@@ -3,10 +3,11 @@ from pygame.sprite import Sprite
 
 class Alien(Sprite):
     '''Class for a single alien ship'''
-    def __init__(self, screen, settings):
+    
+    def __init__(self, ai_game):
         super().__init__()
-        self.screen = screen
-        self.settings = settings
+        self.screen = ai_game.screen
+        self.settings = ai_game.settings
 
         #loads alien ship image and defines rect-attribute
         self.image = pygame.image.load('images/alien.bmp')

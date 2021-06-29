@@ -1,68 +1,134 @@
 import sys
+from time import sleep
+
 import pygame
 
 from bullet import Bullet
 from alien import Alien
 import gf_aliens
 
-def _check_events(settings, screen, ship, bullets):
+def _check_events(ai_game):
     '''checks for events and runs event functions'''
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            _check_keydown_events(event, settings, screen, ship, bullets)
+            _check_keydown_events(ai_game, event)
         elif event.type == pygame.KEYUP:
-            _check_keyup_events(event, ship)
+            _check_keyup_events(ai_game, event)
+        elif (event.type == pygame.MOUSEBUTTONDOWN 
+                and not ai_game.stats.game_active):
+            mouse_pos = pygame.mouse.get_pos()
+            if ai_game.play_button.rect.collidepoint(mouse_pos):
+                _start_game(ai_game)
 
-def _check_keydown_events(event, settings, screen, ship, bullets):
+def _check_keydown_events(ai_game, event):
     '''handles keydown-events'''
     if event.key == pygame.K_LEFT:
-        ship.moving_left = True
+        ai_game.ship.moving_left = True
     elif event.key == pygame.K_RIGHT:
-        ship.moving_right = True
+        ai_game.ship.moving_right = True
     elif event.key == pygame.K_SPACE:
-        _fire_bullet(settings, screen, ship, bullets)
+        if not ai_game.stats.game_active:
+             _start_game(ai_game)
+        else:
+            _fire_bullet(ai_game)
     elif event.key == pygame.K_q:
         sys.exit()
 
-def _check_keyup_events(event, ship):
+def _check_keyup_events(ai_game, event):
     '''handles keyup-events'''
     if event.key == pygame.K_LEFT:
-        ship.moving_left = False
+        ai_game.ship.moving_left = False
     elif event.key == pygame.K_RIGHT:
-        ship.moving_right = False
+        ai_game.ship.moving_right = False
 
-def _update_screen(settings, screen, ship, bullets, aliens):
+def _start_game(ai_game):
+    '''starts new game and resets everything'''
+    ai_game.stats.reset_stats()
+    ai_game.stats.game_active = True
+    #prepare scoreboard, level, ships
+    ai_game.sb.prep_score()
+    ai_game.sb.prep_level()
+    ai_game.sb.prep_ships()
+    '''prepare playfield'''
+    ai_game.aliens.empty()
+    ai_game.bullets.empty()
+    _create_fleet(ai_game)
+    ai_game.ship.center_ship()
+    #re-initializes level 1 settings
+    ai_game.settings.initialize_dynamic_settings()
+    #sets mouse invisible
+    pygame.mouse.set_visible(False)
+
+def _update_screen(ai_game):
     '''fills screen, draws ship, bullets and updates screen'''
-    screen.fill(settings.bg_color)
-    for bullet in bullets.sprites():
+    ai_game.screen.fill(ai_game.settings.bg_color)
+    for bullet in ai_game.bullets.sprites():
         bullet.draw_bullet()
-    aliens.draw(screen)
-    ship.blitme()
+    ai_game.aliens.draw(ai_game.screen)
+    ai_game.sb.show_score()
+    ai_game.ship.blitme()
+    #draw play-button if game is inactive
+    if not ai_game.stats.game_active:
+        ai_game.play_button.draw_button()
     pygame.display.flip()
 
-def _create_fleet(settings, screen, ship, aliens):
+def _create_fleet(ai_game):
     '''creates alien fleet, calculates number of alien ships per row and number of rows'''
-    gf_aliens._create_fleet(settings, screen, ship, aliens)  
-def _create_aliens(screen, settings, aliens, alien_number, row_number):
+    gf_aliens._create_fleet(ai_game)  
+def _create_aliens(ai_game, alien_number, row_number):
     '''creates alien ships'''
-    gf_aliens._create_aliens(screen, settings, aliens, alien_number, row_number)
-def _update_aliens(aliens, settings):
+    gf_aliens._create_aliens(ai_game, alien_number, row_number)
+def _update_aliens(ai_game):
     '''moves alien ships'''
-    gf_aliens._update_aliens(aliens, settings)
+    gf_aliens._update_aliens(ai_game)
 
-def _fire_bullet(settings, screen, ship, bullets):
+def _fire_bullet(ai_game):
     '''creates new and adds to bullets group (if max not yet reached)'''
-    if len(bullets) < settings.bullets_allowed:
-        new_bullet = Bullet(settings, screen, ship)
-        bullets.add(new_bullet)
+    if len(ai_game.bullets) < ai_game.settings.bullets_allowed:
+        new_bullet = Bullet(ai_game)
+        ai_game.bullets.add(new_bullet)
+        #loose points for every shot
+        ai_game.stats.score -= 10
+        ai_game.sb.prep_score()
 
-def _update_bullets(bullets, aliens):
+def _update_bullets(ai_game):
     '''updates bullet positions, deletes old bullets and checks for hits'''
-    bullets.update()
-    for bullet in bullets.copy():
+    ai_game.bullets.update()
+    for bullet in ai_game.bullets.copy():
         if bullet.rect.bottom <= 0:
-            bullets.remove(bullet)
-    #check for hits
-    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+            ai_game.bullets.remove(bullet)  
+    _check_bullet_alien_collision(ai_game)
+
+def _check_bullet_alien_collision(ai_game):
+    '''checks for hits'''
+    collisions = pygame.sprite.groupcollide(ai_game.bullets, ai_game.aliens, True, True)
+    #receive points for hitting aliens
+    if collisions:
+        for aliens in collisions.values():
+            ai_game.stats.score += ai_game.settings.alien_points * len(aliens)
+            ai_game.sb.prep_score()
+            ai_game.sb.check_high_score()
+    #if no more alien ships: creates new fleet and deletes remaining bullets, level-up
+    if not ai_game.aliens:
+        ai_game.bullets.empty()
+        _create_fleet(ai_game)
+        ai_game.settings.increase_speed()
+        ai_game.sb.prep_level()
+
+def _ship_hit(ai_game):
+    '''responds to ship being hit, reduce number of ships left, clear playfield'''
+    if ai_game.stats.ships_left > 1:
+        ai_game.stats.ships_left -= 1
+        ai_game.sb.prep_ships()
+        ai_game.aliens.empty()
+        ai_game.bullets.empty()
+        _create_fleet(ai_game)
+        ai_game.ship.center_ship()
+        #stop the game for 0.5s
+        sleep(0.5)
+    else:
+        ai_game.stats.game_active = False
+        #set mouse visible
+        pygame.mouse.set_visible(True)
