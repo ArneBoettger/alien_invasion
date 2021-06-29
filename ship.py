@@ -2,7 +2,7 @@ import pygame
 
 class Ship():
     '''Ship class'''
-    def __init__(self, settings, screen) -> None:
+    def __init__(self, settings, screen):
         self.screen = screen
         self.settings = settings
 

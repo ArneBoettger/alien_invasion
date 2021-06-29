@@ -3,20 +3,20 @@ from pygame.sprite import Sprite
 
 class Bullet(Sprite):
 
-    def __init__(self, ai_game):
+    def __init__(self, settings, screen, ship):
         #Python 3.x syntax, for Python 2.x: super(Bullet, self).__init__()
         super().__init__()
-        self.screen = ai_game.screen
+        self.screen = screen
 
         #creates bullet at (0, 0), then update the position to top of ships position
-        self.rect = pygame.Rect(0, 0, ai_game.settings.bullet_width, ai_game.settings.bullet_height)
-        self.rect.centerx = ai_game.ship.rect.centerx
-        self.rect.top = ai_game.ship.rect.top
+        self.rect = pygame.Rect(0, 0, settings.bullet_width, settings.bullet_height)
+        self.rect.centerx = ship.rect.centerx
+        self.rect.top = ship.rect.top
         #saves position as float
         self.y = float(self.rect.y)
 
-        self.color = ai_game.settings.bullet_color
-        self.speed_factor = ai_game.settings.bullet_speed_factor
+        self.color = settings.bullet_color
+        self.speed_factor = settings.bullet_speed_factor
     
     def update(self):
         #moves bullet up the screen

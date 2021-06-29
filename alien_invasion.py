@@ -21,16 +21,16 @@ class AlienInvasion:
         self.bullets = Group()
         #create alien fleet
         self.aliens = Group()
-        gf._create_fleet(self)
+        gf._create_fleet(self.settings, self.screen, self.ship, self.aliens)
 
     def run_game(self):
         while True:
             #checks for events and updates ship, bullets and rest of the screen
-            gf._check_events(self)
+            gf._check_events(self.settings, self.screen, self.ship, self.bullets)
             self.ship.update()
-            gf._update_bullets(self.bullets)
-            gf._update_aliens(self)
-            gf._update_screen(self)
+            gf._update_bullets(self.settings, self.screen, self.ship, self.bullets, self.aliens)
+            gf._update_aliens(self.aliens, self.settings)
+            gf._update_screen(self.settings, self.screen, self.ship, self.bullets, self.aliens)
 
             #updates of the entire display
             pygame.display.flip()
