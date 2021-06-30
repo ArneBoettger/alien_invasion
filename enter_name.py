@@ -11,7 +11,7 @@ class EnterNameTextField:
         self.temp_name = []
 
         #size and font of message
-        self.width, self.height = 400, 120
+        self.width, self.height = 500, 120
         self.tf_color = (0, 255, 0)
         self.text_color = (255, 255, 255)
         self.font = pygame.font.SysFont(None, 48)

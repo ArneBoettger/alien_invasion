@@ -10,7 +10,7 @@ class Settings():
         self.bg_color = (230, 230, 230)
 
         #ship settings
-        self.ship_limit = 3
+        self.ship_limit = 1
 
         #bullet settings
             #start settings: 3x15 bullets, speed same as ship, 3 max bullets
@@ -33,7 +33,7 @@ class Settings():
         '''initializes settings throughout the game'''
         self.ship_speed = 1.5
         self.bullet_speed = 3.0
-        self.alien_speed = 1.0
+        self.alien_speed = 30
         self.fleet_direction = 1
         self.alien_points = 50
 

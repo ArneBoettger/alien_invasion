@@ -48,28 +48,36 @@ def _check_keyup_events(ai_game, event):
         ai_game.ship.moving_right = False
 
 def _read_name(ai_game):
-    name = ai_game.enter_name.temp_name
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.quit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                if "left shift" in name:
-                    i = name.index("left shift")
-                    name.remove("left shift")
-                    name[i] = name[i].upper()
-                if "right shift" in name:
-                    i = name.index("right shift")
-                    name.remove("right shift")
-                    name[i] = name[i].upper()
-                special_keys = []
-                for key in name:
-                    if len(key) > 1:
-                        special_keys.append(key)
-                name = [key for key in name if key not in special_keys]
-                _save_high_score(ai_game, "".join(name))
-                name.clear()
-            name.append(pygame.key.name(event.key))
+                ai_game.enter_name.temp_name = __check_name(ai_game.enter_name.temp_name)
+                _save_high_score(ai_game, "".join(ai_game.enter_name.temp_name))
+                ai_game.enter_name.temp_name.clear()
+            key = pygame.key.name(event.key)
+            ai_game.enter_name.temp_name.append(key)
+            if key == "backspace":
+                ai_game.enter_name.temp_name.pop()
+                if len(ai_game.enter_name.temp_name) > 0:
+                    ai_game.enter_name.temp_name.pop()
+            elif len(key) < 3:
+                ai_game.enter_name.temp_name = __check_name(ai_game.enter_name.temp_name)
+def __check_name(name):
+    if "left shift" in name:
+        i = name.index("left shift")
+        name.remove("left shift")
+        name[i] = name[i].upper()
+    if "right shift" in name:
+        i = name.index("right shift")
+        name.remove("right shift")
+        name[i] = name[i].upper()
+    special_keys = []
+    for key in name:
+        if len(key) > 1:
+            special_keys.append(key)
+    return [key for key in name if key not in special_keys]
 
 def _pause(ai_game):
     for event in pygame.event.get():
@@ -108,10 +116,15 @@ def _update_screen(ai_game):
     #draw play-button if game is inactive, enter-name if new highscore
     if not ai_game.stats.game_active:
         if ai_game.enter_name_flag:
+            _update_name_textfield(ai_game)
             ai_game.enter_name.draw_textfield(ai_game)
         else:
             ai_game.play_button.draw_button()
     pygame.display.flip()
+def _update_name_textfield(ai_game):
+    enter_name = ai_game.enter_name
+    msg = "Enter Name: " + "".join(ai_game.enter_name.temp_name)
+    enter_name.line2_image = enter_name.font.render(msg, True, enter_name.text_color, enter_name.tf_color)
 
 def _create_fleet(ai_game):
     '''creates alien fleet, calculates number of alien ships per row and number of rows'''
@@ -188,4 +201,5 @@ def _save_high_score(ai_game, name):
     with open("high_score.txt", "w", encoding="utf-8") as hs:
         hs.write(name + ":" + str(ai_game.stats.score))
     ai_game.enter_name_flag = False
+    ai_game.enter_name = None
     ai_game.stats.reset_stats()

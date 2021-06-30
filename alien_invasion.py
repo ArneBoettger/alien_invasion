@@ -1,5 +1,6 @@
 import pygame
 from pygame.sprite import Group
+import pygame_menu
 
 import game_functions as gf
 from settings import Settings
@@ -42,6 +43,7 @@ class AlienInvasion:
     def run_game(self):
         while True:
             #checks for events and updates ship, bullets and rest of the screen
+            #pauses when pause mode or entering ones name
             if not self.enter_name_flag and not self.pause_flag:
                 gf._check_events(self)
             elif not self.enter_name_flag and self.pause_flag:
