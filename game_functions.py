@@ -37,6 +37,8 @@ def _check_keydown_events(ai_game, event):
             _fire_bullet(ai_game)
     elif event.key == pygame.K_q:
         sys.exit()
+    elif event.key == pygame.K_p:
+        ai_game.pause_flag = True
 
 def _check_keyup_events(ai_game, event):
     '''handles keyup-events'''
@@ -68,6 +70,14 @@ def _read_name(ai_game):
                 _save_high_score(ai_game, "".join(name))
                 name.clear()
             name.append(pygame.key.name(event.key))
+
+def _pause(ai_game):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.quit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                ai_game.pause_flag = False
 
 def _start_game(ai_game):
     '''starts new game and resets everything'''

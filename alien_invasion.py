@@ -32,6 +32,8 @@ class AlienInvasion:
         gf._create_fleet(self)
         #create play-button
         self.play_button = Button(self, "Play")
+        #pause mode
+        self.pause_flag = False
 
         #enter name for highscore
         self.enter_name_flag = False
@@ -40,12 +42,14 @@ class AlienInvasion:
     def run_game(self):
         while True:
             #checks for events and updates ship, bullets and rest of the screen
-            if not self.enter_name_flag:
+            if not self.enter_name_flag and not self.pause_flag:
                 gf._check_events(self)
+            elif not self.enter_name_flag and self.pause_flag:
+                gf._pause(self)
             else:
                 gf._read_name(self)
 
-            if self.stats.game_active:
+            if self.stats.game_active and not self.pause_flag:
                 self.ship.update()
                 gf._update_bullets(self)
                 gf._update_aliens(self)
