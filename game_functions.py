@@ -1,3 +1,4 @@
+import os.path
 import sys
 from time import sleep
 
@@ -6,6 +7,7 @@ import pygame
 from bullet import Bullet
 from alien import Alien
 import gf_aliens
+from enter_name import EnterNameTextField
 
 def _check_events(ai_game):
     '''checks for events and runs event functions'''
@@ -43,6 +45,30 @@ def _check_keyup_events(ai_game, event):
     elif event.key == pygame.K_RIGHT:
         ai_game.ship.moving_right = False
 
+def _read_name(ai_game):
+    name = ai_game.enter_name.temp_name
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.quit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                if "left shift" in name:
+                    i = name.index("left shift")
+                    name.remove("left shift")
+                    name[i] = name[i].upper()
+                if "right shift" in name:
+                    i = name.index("right shift")
+                    name.remove("right shift")
+                    name[i] = name[i].upper()
+                special_keys = []
+                for key in name:
+                    if len(key) > 1:
+                        special_keys.append(key)
+                name = [key for key in name if key not in special_keys]
+                _save_high_score(ai_game, "".join(name))
+                name.clear()
+            name.append(pygame.key.name(event.key))
+
 def _start_game(ai_game):
     '''starts new game and resets everything'''
     ai_game.stats.reset_stats()
@@ -69,9 +95,12 @@ def _update_screen(ai_game):
     ai_game.aliens.draw(ai_game.screen)
     ai_game.sb.show_score()
     ai_game.ship.blitme()
-    #draw play-button if game is inactive
+    #draw play-button if game is inactive, enter-name if new highscore
     if not ai_game.stats.game_active:
-        ai_game.play_button.draw_button()
+        if ai_game.enter_name_flag:
+            ai_game.enter_name.draw_textfield(ai_game)
+        else:
+            ai_game.play_button.draw_button()
     pygame.display.flip()
 
 def _create_fleet(ai_game):
@@ -115,6 +144,7 @@ def _check_bullet_alien_collision(ai_game):
         ai_game.bullets.empty()
         _create_fleet(ai_game)
         ai_game.settings.increase_speed()
+        ai_game.stats.level += 1
         ai_game.sb.prep_level()
 
 def _ship_hit(ai_game):
@@ -132,3 +162,20 @@ def _ship_hit(ai_game):
         ai_game.stats.game_active = False
         #set mouse visible
         pygame.mouse.set_visible(True)
+        if _check_if_highscore(ai_game):
+            ai_game.enter_name_flag = True
+            msg = "New Highscore: " + str(ai_game.stats.score)
+            ai_game.enter_name = EnterNameTextField(ai_game, msg)
+            
+def _check_if_highscore(ai_game):
+    if os.path.exists("high_score.txt"):
+        with open("high_score.txt", encoding="utf-8") as hs:
+            for line in hs:
+                return int(line.split(":")[1]) < ai_game.stats.score
+    return True
+
+def _save_high_score(ai_game, name):
+    with open("high_score.txt", "w", encoding="utf-8") as hs:
+        hs.write(name + ":" + str(ai_game.stats.score))
+    ai_game.enter_name_flag = False
+    ai_game.stats.reset_stats()

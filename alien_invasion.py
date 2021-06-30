@@ -9,6 +9,7 @@ from alien import Alien
 from game_stats import GameStats
 from button import Button
 from scoreboard import Scoreboard
+from enter_name import EnterNameTextField
 
 class AlienInvasion:
 
@@ -18,7 +19,7 @@ class AlienInvasion:
         self.settings = Settings()
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption("Alien Invasion")
-
+ 
         #creates GameStats instance to save statistics and a scoreboard to show score
         self.stats = GameStats(self)
         self.sb = Scoreboard(self)
@@ -32,10 +33,17 @@ class AlienInvasion:
         #create play-button
         self.play_button = Button(self, "Play")
 
+        #enter name for highscore
+        self.enter_name_flag = False
+        self.enter_name = None
+
     def run_game(self):
         while True:
             #checks for events and updates ship, bullets and rest of the screen
-            gf._check_events(self)
+            if not self.enter_name_flag:
+                gf._check_events(self)
+            else:
+                gf._read_name(self)
 
             if self.stats.game_active:
                 self.ship.update()

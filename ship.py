@@ -2,7 +2,7 @@ import pygame
 from pygame.sprite import Sprite
 
 class Ship(Sprite):
-    '''Ship class'''
+    '''ship class'''
     
     def __init__(self, ai_game):
         '''initializes the ship and sets its positions'''
